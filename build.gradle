@@ -1,0 +1,46 @@
+apply plugin: 'java'
+
+sourceCompatibility = '1.8'
+[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+
+if (!hasProperty('mainClass')) {
+    ext.mainClass = ''
+}
+
+repositories {
+    mavenCentral()
+}
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "io.spring.gradle:dependency-management-plugin:1.0.3.RELEASE"
+    }
+}
+
+apply plugin: "io.spring.dependency-management"
+
+dependencyManagement {
+    imports {
+        mavenBom 'com.amazonaws:aws-java-sdk-bom:1.11.228'
+    }
+}
+
+dependencies {
+    compile 'com.amazonaws:aws-java-sdk-s3'
+    testCompile group: 'junit', name: 'junit', version: '4.11'
+}
+
+//create a single Jar with all dependencies
+task buildWithDependencies(type: Jar) {
+    manifest {
+        attributes 'Implementation-Title': 'Gradle Jar File With Dependencies',  
+                   'Implementation-Version': '1.0' //,
+                   // 'Main-Class': 'com.zestlabs.main.Main'
+    }   
+    baseName = 'awshelper-all'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
